@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <title>GPS 实测面积仪</title>
+  <meta name="description" content="绕地块走一圈，用 iPhone GPS 和格林公式实时测算面积。">
+  <meta name="theme-color" content="#1e3a5f">
+  <meta name="color-scheme" content="light">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="实测面积">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png">
+  <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-pin" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2.2c-4.02 0-7.28 3.16-7.28 7.06 0 5.16 6.15 11.72 6.41 12a1.18 1.18 0 0 0 1.74 0c.26-.28 6.41-6.84 6.41-12 0-3.9-3.26-7.06-7.28-7.06Z"/>
+      <circle cx="12" cy="9.1" r="2.35" fill="#fff"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M8.2 4.9v14.2c0 .9 1 1.45 1.75.96l11.1-7.1a1.14 1.14 0 0 0 0-1.92L9.95 3.94A1.14 1.14 0 0 0 8.2 4.9Z"/>
+    </symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24">
+      <rect x="6.6" y="4.4" width="3.9" height="15.2" rx="1.4" fill="currentColor"/>
+      <rect x="13.5" y="4.4" width="3.9" height="15.2" rx="1.4" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="M4.6 12.6 9.6 17.5 19.5 6.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24">
+      <path d="M20 12a8 8 0 1 1-2.45-5.75" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+      <path d="M20.2 4.3v5.2h-5.2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-route" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.1 3.2" stroke-linecap="round"/>
+      <path d="M12 6.3c-2.2 0-4 1.74-4 3.88 0 2.7 3.25 6.03 3.4 6.19a.82.82 0 0 0 1.2 0c.15-.16 3.4-3.49 3.4-6.19 0-2.14-1.8-3.88-4-3.88Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      <circle cx="12" cy="10.2" r="1.25" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-warning" viewBox="0 0 24 24">
+      <path d="M12 3.4 21 20H3L12 3.4Z" fill="currentColor" opacity=".14"/>
+      <path d="M12 3.4 21 20H3L12 3.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M12 9v5.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="17.1" r="1.1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24">
+      <rect x="8.2" y="8.2" width="11.2" height="11.2" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M15.8 8.2V6.9a2.2 2.2 0 0 0-2.2-2.2H6.9a2.2 2.2 0 0 0-2.2 2.2v6.7a2.2 2.2 0 0 0 2.2 2.2h1.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 3.8v11.1M7.7 10.7 12 15l4.3-4.3M4.6 16.9v1.5a1.8 1.8 0 0 0 1.8 1.8h11.2a1.8 1.8 0 0 0 1.8-1.8v-1.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24">
+      <path d="M6.4 21V4.2M6.4 4.6h10.9l-2.1 3.7 2.1 3.7H6.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </svg>
+
+  <div class="app" id="app" data-phase="idle">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="brand">
+          <svg class="pin-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"></use></svg>
+          <h1>GPS 实测面积仪</h1>
+        </div>
+        <span class="owner">汕大 叶隆铖</span>
+      </div>
+      <div class="subline">
+        <span>绕地块走一圈，实测围成面积</span>
+        <span class="sep">·</span>
+        <span class="formula">A = ½ ∮ (x dy − y dx)</span>
+      </div>
+    </header>
+
+    <section class="stats" aria-label="实测统计">
+      <div class="stat">
+        <div class="stat-value"><span id="statPoints">0</span></div>
+        <div class="stat-label">已记录点</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value blue"><span id="statPerimeter">0</span><span class="unit" id="statPerimeterUnit">m</span></div>
+        <div class="stat-label">已走周长</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green"><span id="statArea">0</span><span class="unit" id="statAreaUnit">m²</span></div>
+        <div class="stat-label">围成面积</div>
+      </div>
+    </section>
+
+    <div class="gps-bar" id="gpsBar">
+      <div class="gps-state">
+        <span class="gps-dot" id="gpsDot" aria-hidden="true"></span>
+        <span id="gpsText">GPS 未开始</span>
+      </div>
+      <div class="gps-acc" id="gpsAcc">精度 <span id="accuracyText">±— m</span></div>
+    </div>
+
+    <main class="map" id="mapPanel" aria-label="测量轨迹地图">
+      <canvas id="mapCanvas" role="img" aria-label="已记录轨迹与围成区域示意图"></canvas>
+      <div class="chip" id="areaChip"><span id="chipText">等待开始 · 面积 —</span></div>
+      <div class="demo-badge" id="demoBadge" hidden>演示数据</div>
+      <div class="map-hint" id="mapHint">
+        <svg class="hint-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-route"></use></svg>
+        <strong id="hintTitle">绕地块走一圈</strong>
+        <span id="hintSub">点下方“开始测量”，回到起点后闭合</span>
+      </div>
+      <button class="pin-btn" id="manualPinBtn" type="button" aria-label="记录当前点" hidden>＋<span>打点</span></button>
+      <div class="notice" id="notice" aria-hidden="true">
+        <div class="notice-card" role="alert">
+          <div class="notice-icon" id="noticeIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-warning"></use></svg></div>
+          <h3 id="noticeTitle">无法获取定位</h3>
+          <div class="notice-body" id="noticeBody"></div>
+          <div class="notice-actions">
+            <button class="notice-ghost" id="noticeSecondary" type="button">关闭</button>
+            <button class="notice-primary" id="noticePrimary" type="button">重新定位</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <section class="controls" aria-label="测量控制">
+      <div class="mode-row">
+        <span class="mode-label">记录方式</span>
+        <div class="mode-group" role="group" aria-label="记录方式">
+          <button class="mode is-active" id="modeAuto" type="button" aria-pressed="true">自动（边走边记）</button>
+          <button class="mode" id="modeManual" type="button" aria-pressed="false">手动打点</button>
+        </div>
+      </div>
+      <button class="main-btn" id="mainBtn" type="button">
+        <span class="main-icon">
+          <svg class="icon icon-play" id="mainPlay" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-play"></use></svg>
+          <svg class="icon icon-pause" id="mainPause" viewBox="0 0 24 24" aria-hidden="true" hidden><use href="#i-pause"></use></svg>
+          <span class="spinner" id="mainSpinner" hidden aria-hidden="true"></span>
+        </span>
+        <span id="mainLabel">开始测量</span>
+      </button>
+      <div class="sub-row">
+        <button class="sub-btn" id="closeBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>
+          <span>闭合并出结果</span>
+        </button>
+        <button class="sub-btn" id="resetBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reset"></use></svg>
+          <span>重置</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+  <section class="sheet" id="resultSheet" role="dialog" aria-modal="true" aria-labelledby="resultTitle" aria-hidden="true" tabindex="-1">
+    <div class="sheet-grab" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <span class="result-tag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"></use></svg>实测结果</span>
+      <button class="round-btn" id="sheetCloseBtn" type="button" aria-label="关闭结果">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    <h2 class="result-title" id="resultTitle">地块面积</h2>
+    <div class="result-area"><span id="resultAreaNum">0.00</span><span class="result-unit" id="resultAreaUnit">万m²</span></div>
+    <p class="result-sub"><span id="resultExactArea">≈ 0 m²</span><span class="sub-dot">·</span><span id="resultMu">≈ 0 亩</span></p>
+    <div class="result-warning" id="resultWarning" hidden></div>
+    <div class="metrics">
+      <div class="metric"><b id="resultPerimeter">0 m</b><span>围成周长</span></div>
+      <div class="metric"><b id="resultPoints">0</b><span>记录点数</span></div>
+      <div class="metric"><b id="resultAccuracy">±— m</b><span>平均精度</span></div>
+      <div class="metric"><b id="resultGap">0 m</b><span>闭合差</span></div>
+    </div>
+    <div class="formula-card">
+      <div class="formula-head">格林公式 · 面积测量原理</div>
+      <div class="formula-line">A = ½ ∮<sub>L</sub> (x dy − y dx)</div>
+      <p>鞋带公式是它的离散形式。经纬度投影到局部平面后，沿边界逐点累加 <i>x</i>·Δ<i>y</i> − <i>y</i>·Δ<i>x</i>。</p>
+    </div>
+    <div class="meta-row"><span id="resultTime">—</span><span id="resultMode">自动记录</span></div>
+    <div class="sheet-action-row">
+      <button class="sheet-soft" id="copyBtn" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"></use></svg>复制结果</button>
+      <button class="sheet-soft" id="exportBtn" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-download"></use></svg>导出 CSV</button>
+    </div>
+    <button class="main-btn sheet-main" id="sheetResumeBtn" type="button">
+      <span class="main-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-play"></use></svg></span>
+      <span>继续测量</span>
+    </button>
+    <p class="sheet-foot">数据保存在本机，可继续补测，或导出原始点位做误差分析。</p>
+  </section>
+
+  <div class="modal-mask" id="confirmMask" aria-hidden="true">
+    <div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+      <h3 id="confirmTitle">重置本次测量？</h3>
+      <p id="confirmText">已记录的点位和结果将被清空，且无法恢复。</p>
+      <div class="confirm-actions">
+        <button class="confirm-ghost" id="confirmCancel" type="button">取消</button>
+        <button class="confirm-danger" id="confirmOk" type="button">重置</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <div class="noscript">此测量页需要启用 JavaScript 才能获取 GPS 与计算面积。</div>
+  </noscript>
+
+  <script src="./demo-data.js" defer></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>
